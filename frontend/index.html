@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>多模型聚合 AI Chat</title>
+    <link rel="icon" type="image/png" sizes="256x256" href="./assets/logo_merge_256_full.png" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar" aria-label="Threads">
+        <div class="brand">
+          <div class="brand-title">多模型聚合 AI Chat</div>
+        </div>
+
+        <section class="models" aria-label="Models">
+          <div class="models-title">模型版本</div>
+          <div class="model-row">
+            <img
+              class="model-logo model-logo-chatgpt"
+              src="./assets/chatgpt_logo_text_bigger_close.png"
+              alt="ChatGPT"
+            />
+            <span class="model-value" id="model-chatgpt">加载中…</span>
+          </div>
+          <div class="model-row">
+            <img
+              class="model-logo"
+              src="./assets/gemini-logo-softwhite.png"
+              alt="Gemini"
+            />
+            <span class="model-value" id="model-gemini">加载中…</span>
+          </div>
+          <div class="model-row">
+            <img
+              class="model-logo"
+              src="./assets/claude-logo-softwhite.png"
+              alt="Claude"
+            />
+            <span class="model-value" id="model-claude">加载中…</span>
+          </div>
+        </section>
+
+        <div class="sidebar-actions">
+          <button class="btn btn-primary" id="btn-new-chat" type="button">新聊天</button>
+        </div>
+
+        <section class="threads" aria-label="Thread list">
+          <div class="threads-title">
+            最近对话
+            <span class="threads-hint">(最多 10 个)</span>
+          </div>
+          <div class="threads-list" id="threads-list"></div>
+          <div class="threads-empty" id="threads-empty" hidden>暂无对话。点击“新聊天”开始。</div>
+        </section>
+      </aside>
+
+      <main class="main" aria-label="Chat">
+        <div class="rotate-tip" id="rotate-tip" role="note">提示：横屏可显示左侧栏</div>
+        <header class="topbar">
+          <div class="topbar-title" id="topbar-title">新聊天</div>
+        </header>
+
+        <section class="chat" id="chat">
+          <div class="chat-empty" id="chat-empty">
+            <div class="chat-empty-title">开始对话</div>
+            <div class="chat-empty-subtitle">输入问题后将并行调用三家模型，再由 Synthesizer 汇总。</div>
+          </div>
+          <div class="chat-list" id="chat-list" hidden></div>
+        </section>
+
+        <footer class="composer">
+          <div class="composer-row">
+            <textarea
+              id="composer-input"
+              class="composer-input"
+              rows="2"
+              placeholder="请输入你的问题（Enter 发送，Shift+Enter 换行）"
+            ></textarea>
+            <button class="btn btn-primary" id="btn-send" type="button">发送</button>
+          </div>
+          <div class="composer-hint" id="composer-hint"></div>
+        </footer>
+      </main>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
