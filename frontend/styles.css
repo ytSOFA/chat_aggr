@@ -246,12 +246,42 @@ body {
 
 .rotate-tip {
   display: none;
-  padding: 10px 14px;
+  position: relative;
+  padding: 10px 38px 10px 14px;
   border-bottom: 1px solid var(--border);
   background: rgba(245, 158, 11, 0.12);
   color: var(--text);
   font-size: 12px;
   text-align: center;
+}
+
+.rotate-tip-text {
+  display: inline-block;
+}
+
+.rotate-tip-close {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(16, 24, 40, 0.55);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.rotate-tip-close:hover {
+  border-color: rgba(255, 255, 255, 0.45);
+  background: rgba(16, 24, 40, 0.8);
 }
 
 .topbar {
@@ -583,6 +613,19 @@ details summary {
   @media (orientation: portrait) {
     .rotate-tip {
       display: block;
+    }
+  }
+  @media (orientation: landscape) {
+    .app {
+      grid-template-columns: 260px 1fr;
+      gap: 10px;
+      padding: 10px;
+    }
+    .sidebar {
+      display: flex;
+    }
+    .rotate-tip {
+      display: none;
     }
   }
 }

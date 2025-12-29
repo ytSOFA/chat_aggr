@@ -28,7 +28,9 @@ const els = {
   hint: $("composer-hint"),
   modelChatGPT: $("model-chatgpt"),
   modelGemini: $("model-gemini"),
-  modelClaude: $("model-claude")
+  modelClaude: $("model-claude"),
+  rotateTip: $("rotate-tip"),
+  rotateTipClose: $("rotate-tip-close")
 };
 
 let state = loadState();
@@ -58,6 +60,12 @@ function wireEvents() {
       sendMessage();
     }
   });
+
+  if (els.rotateTip && els.rotateTipClose) {
+    els.rotateTipClose.addEventListener("click", () => {
+      els.rotateTip.hidden = true;
+    });
+  }
 }
 
 async function loadConfig() {
