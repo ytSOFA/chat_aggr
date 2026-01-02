@@ -45,13 +45,13 @@ test(
     const threadId = randomUUID();
     const payload = {
       threadId,
-      //message: "帮我查一下今天上海的气温，然后用一句话总结",
+      message: "帮我查一下今天上海的气温",
       //message: "用一句话说出你是否可以访问互联网",
       //message: "今天的日期",
       //message: "搜索互联网：今天的日期",
       //message: "今天天气如何？",
       //message: "1+1=？",
-      message: "搜索互联网：2025年F1世界冠军是谁", //都可以，gpt很慢
+      //message: "搜索互联网：2025年F1世界冠军是谁", //都可以，gpt很慢
       //message:"你能调用工具搜索互联网吗",
       //message: "一句话描述春天", //都可以
       contextTurns: []
