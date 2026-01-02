@@ -21,7 +21,8 @@ export async function generateZhipu(
     temperature: 0,
     stream: false
   };
-
+  const bodyStr = JSON.stringify(body);                                                                                                                             
+  console.log(`[zhipu] request size: ${bodyStr.length} bytes, timeout: ${timeoutMs}ms`); 
   const { data, latencyMs } = await postJson<ZhipuChatCompletionResponse>(
     url,
     body,

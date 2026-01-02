@@ -116,32 +116,36 @@ export function createApp() {
     let synthMs = 0;
 
     let final: FinalOutput;
-    try {
-      const synth = await synthesizeFinal({
-        userMessage: message,
-        contextTurns: trimmedContext,
-        candidates: normalizedCandidates,
-        timeoutMs: synthTimeoutMs
-      });
-      synthMs = synth.latencyMs;
-      final = synth.final;
-
-      if (okCandidates.length === 1) {
-        final.confidence = Math.min(final.confidence, 0.3);
-      }
-    } catch (err: any) {
-      synthMs = nowMs() - synthStartedAt;
-      const best = pickBestCandidate(normalizedCandidates);
+    if (okCandidates.length === 1) {
       final = {
-        final_answer: best?.text ?? "抱歉，本次汇总失败，请稍后重试。",
+        final_answer: okCandidates[0]?.text ?? "抱歉，本次汇总失败，请稍后重试。",
         disagreements: [],
-        confidence: 0.2
+        confidence: 0.3
       };
-      safeLog("[/api/aggr/chat] synth_failed_fallback", {
-        threadId,
-        turnId,
-        error: typeof err?.message === "string" ? err.message : "unknown synth error"
-      });
+    } else {
+      try {
+        const synth = await synthesizeFinal({
+          userMessage: message,
+          contextTurns: trimmedContext,
+          candidates: normalizedCandidates,
+          timeoutMs: synthTimeoutMs
+        });
+        synthMs = synth.latencyMs;
+        final = synth.final;
+      } catch (err: any) {
+        synthMs = nowMs() - synthStartedAt;
+        const best = pickBestCandidate(normalizedCandidates);
+        final = {
+          final_answer: best?.text ?? "抱歉，本次汇总失败，请稍后重试。",
+          disagreements: [],
+          confidence: 0.2
+        };
+        safeLog("[/api/aggr/chat] synth_failed_fallback", {
+          threadId,
+          turnId,
+          error: typeof err?.message === "string" ? err.message : "unknown synth error"
+        });
+      }
     }
 
     const responseBody = {
