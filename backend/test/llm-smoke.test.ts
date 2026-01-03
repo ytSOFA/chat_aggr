@@ -33,7 +33,7 @@ function assertCandidateOrder(candidates: any[]): void {
 }
 
 test(
-  "LLM smoke: POST /api/aggr/chat prints JSON (200 or 502)",
+  "LLM smoke: POST /api/aggr/chat streams NDJSON (final or error)",
   { timeout: 120_000, skip: process.env.RUN_REAL_LLM_SMOKE !== "1" },
   async () => {
     const app = createApp();
@@ -45,6 +45,7 @@ test(
     const threadId = randomUUID();
     const payload = {
       threadId,
+      //message: "今天天气如何？",
       //message: "今天上海的气温",
       //message: "特朗普介绍",
       message: "2026双子座运势",
@@ -52,7 +53,6 @@ test(
       //message: "用一句话说出你是否可以访问互联网",
       //message: "今天的日期",
       //message: "搜索互联网：今天的日期",
-      //message: "今天天气如何？",
       //message: "1+1=？",
       //message: "搜索互联网：2025年F1世界冠军是谁", //都可以，gpt很慢
       //message:"你能调用工具搜索互联网吗",
@@ -71,25 +71,30 @@ test(
       });
       const text = await res.text();
 
-      let body: any;
-      try {
-        body = JSON.parse(text);
-      } catch {
-        body = { _non_json_body: text };
-      }
+      const events = text
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .map((line) => JSON.parse(line));
+
+      const finalEvent = events.find((e) => e?.type === "final");
+      const errorEvent = events.find((e) => e?.type === "error");
 
       console.log(`=== RESPONSE status=${res.status} ===`);
-      console.log(JSON.stringify(body, null, 2));
+      console.log(JSON.stringify({ finalEvent, errorEvent }, null, 2));
 
-      assert.ok([200, 502].includes(res.status));
-      assert.equal(body.threadId, threadId);
-      assert.equal(typeof body.turnId, "string");
-      assert.ok(body.turnId.length > 0);
+      assert.equal(res.status, 200);
+      assert.ok(finalEvent || errorEvent);
 
-      assert.ok(Array.isArray(body.candidates));
-      assertCandidateOrder(body.candidates);
+      if (finalEvent) {
+        const body = finalEvent.data;
+        assert.equal(body.threadId, threadId);
+        assert.equal(typeof body.turnId, "string");
+        assert.ok(body.turnId.length > 0);
 
-      if (res.status === 200) {
+        assert.ok(Array.isArray(body.candidates));
+        assertCandidateOrder(body.candidates);
+
         assert.ok(body.final && typeof body.final === "object");
         assert.equal(typeof body.final.final_answer, "string");
         assert.ok(body.final.final_answer.trim().length > 0);
@@ -97,10 +102,20 @@ test(
         assert.ok(body.timing && typeof body.timing === "object");
         assert.equal(typeof body.timing.totalMs, "number");
         assert.equal(typeof body.timing.synthMs, "number");
-      } else {
+      }
+
+      if (errorEvent) {
+        const body = errorEvent.data;
+        assert.equal(body.threadId, threadId);
+        assert.equal(typeof body.turnId, "string");
+        assert.ok(body.turnId.length > 0);
+
         assert.ok(body.error && typeof body.error === "object");
         assert.equal(body.error.code, "UPSTREAM_ALL_FAILED");
         assert.equal(typeof body.error.message, "string");
+
+        assert.ok(Array.isArray(body.candidates));
+        assertCandidateOrder(body.candidates);
       }
     } finally {
       await new Promise<void>((resolve, reject) => {

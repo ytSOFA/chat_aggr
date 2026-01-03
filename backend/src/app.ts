@@ -86,6 +86,23 @@ export function createApp() {
 
     safeLog("[/api/aggr/chat] request", { threadId, turnId, message, contextTurns });
 
+    res.status(200);
+    res.setHeader("Content-Type", "application/x-ndjson; charset=utf-8");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.setHeader("X-Accel-Buffering", "no");
+    res.flushHeaders();
+
+    let closed = false;
+    res.on("close", () => {
+      closed = true;
+    });
+
+    const writeEvent = (payload: unknown) => {
+      if (closed || res.writableEnded) return;
+      res.write(`${JSON.stringify(payload)}\n`);
+    };
+
     const { messages, contextTurns: trimmedContext } = buildMessages({ threadId, message, contextTurns });
     const { candidates } = await runOrchestrator(messages);
 
@@ -114,7 +131,8 @@ export function createApp() {
         }))
       };
       safeLog("[/api/aggr/chat] upstream_all_failed", payload);
-      return res.status(502).json(payload);
+      writeEvent({ type: "error", data: payload });
+      return res.end();
     }
 
     const synthTimeoutMs = getIntEnv("SYNTH_TIMEOUT_MS", 10000);
@@ -130,7 +148,8 @@ export function createApp() {
       try {
         const synth = await synthesizeFinal({
           candidates: normalizedCandidates,
-          timeoutMs: synthTimeoutMs
+          timeoutMs: synthTimeoutMs,
+          onDelta: (text) => writeEvent({ type: "delta", text })
         });
         synthMs = synth.latencyMs;
         final = synth.final;
@@ -157,7 +176,8 @@ export function createApp() {
     };
 
     safeLog("[/api/aggr/chat] response", responseBody);
-    res.json(responseBody);
+    writeEvent({ type: "final", data: responseBody });
+    res.end();
   });
 
   app.get("/", (_req, res) => {

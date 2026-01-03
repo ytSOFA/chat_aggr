@@ -24,6 +24,7 @@ function buildSynthUserPrompt(params: { candidates: Candidate[] }): string {
 export async function synthesizeFinal(params: {
   candidates: Candidate[];
   timeoutMs: number;
+  onDelta?: (text: string) => void;
 }): Promise<{ final: FinalOutput; latencyMs: number }> {
   const system = buildSynthSystemPrompt();
   const user = buildSynthUserPrompt({ candidates: params.candidates });
@@ -33,7 +34,8 @@ export async function synthesizeFinal(params: {
       { role: "system", content: system },
       { role: "user", content: user }
     ],
-    params.timeoutMs
+    params.timeoutMs,
+    params.onDelta
   );
 
   const preview =

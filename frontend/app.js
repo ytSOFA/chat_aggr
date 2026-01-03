@@ -316,6 +316,8 @@ function renderPendingTurn(p) {
 
   if (p.error) {
     assistantBubble.textContent = p.error;
+  } else if (p.streamText) {
+    assistantBubble.textContent = p.streamText;
   } else {
     const wrap = document.createElement("div");
     wrap.className = "msg-meta";
@@ -461,9 +463,9 @@ async function sendMessage() {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ threadId, message: text, contextTurns })
     });
-    const data = await res.json().catch(() => null);
 
     if (!res.ok) {
+      const data = await res.json().catch(() => null);
       // Only 502 is expected by the plan for upstream all failed; treat others as generic.
       const message = data?.error?.message || `请求失败：HTTP ${res.status}`;
       showToast(message);
@@ -482,16 +484,94 @@ async function sendMessage() {
       return;
     }
 
+    if (!res.body) throw new Error("响应为空：未收到流数据");
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let finalData = null;
+    let errorData = null;
+
+    const handleEvent = (evt) => {
+      if (!evt || typeof evt !== "object") return;
+      if (evt.type === "delta") {
+        if (!pending || pending.mode !== "inflight") return;
+        const delta = typeof evt.text === "string" ? evt.text : "";
+        if (!delta) return;
+        pending.streamText = (pending.streamText ?? "") + delta;
+        renderChat();
+        return;
+      }
+      if (evt.type === "final") {
+        finalData = evt.data ?? null;
+        return;
+      }
+      if (evt.type === "error") {
+        errorData = evt.data ?? null;
+      }
+    };
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split(/\r?\n/);
+      buffer = lines.pop() ?? "";
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        try {
+          handleEvent(JSON.parse(line));
+        } catch {
+          // ignore invalid chunks
+        }
+        if (finalData || errorData) break;
+      }
+      if (finalData || errorData) {
+        await reader.cancel().catch(() => {});
+        break;
+      }
+    }
+
+    const tail = buffer + decoder.decode();
+    if (tail.trim()) {
+      for (const line of tail.split(/\r?\n/)) {
+        if (!line.trim()) continue;
+        try {
+          handleEvent(JSON.parse(line));
+        } catch {
+          // ignore trailing parse errors
+        }
+      }
+    }
+
+    if (errorData) {
+      const message = errorData?.error?.message || "请求失败";
+      showToast(message);
+      pending = {
+        mode: "error",
+        threadId,
+        isNewThread,
+        userMessage: text,
+        startedAt: Date.now(),
+        error: `请求失败：${message}`,
+        candidates: errorData?.candidates
+      };
+      renderChat();
+      return;
+    }
+
+    if (!finalData) throw new Error("后端返回格式异常：final 为空");
+
     // Success: write a new turn into localStorage.
-    const finalAnswer = data?.final?.final_answer ?? "";
+    const finalAnswer = finalData?.final?.final_answer ?? "";
     if (!finalAnswer.trim()) throw new Error("后端返回格式异常：final_answer 为空");
 
     const turn = {
       userMessage: text,
       finalAnswer,
       createdAt: Date.now(),
-      candidates: data?.candidates ?? [],
-      timing: data?.timing ?? undefined
+      candidates: finalData?.candidates ?? [],
+      timing: finalData?.timing ?? undefined
     };
 
     if (isNewThread) {
