@@ -29,10 +29,16 @@ function buildMessages(req: ChatRequest) {
     .filter((t) => t && typeof t.user === "string" && typeof t.assistant === "string")
     .slice(-MAX_CONTEXT_TURNS);
 
-  const messages = trimmed.flatMap((t) => [
-    { role: "user" as const, content: t.user },
-    { role: "assistant" as const, content: t.assistant }
-  ]);
+  const messages = [
+    {
+      role: "system" as const,
+      content: "回答要简洁明了；如果用户明确要求详细说明或步骤，再适当展开。"
+    },
+    ...trimmed.flatMap((t) => [
+      { role: "user" as const, content: t.user },
+      { role: "assistant" as const, content: t.assistant }
+    ])
+  ];
 
   messages.push({ role: "user" as const, content: req.message });
   return { messages, contextTurns: trimmed };
@@ -118,15 +124,11 @@ export function createApp() {
     let final: FinalOutput;
     if (okCandidates.length === 1) {
       final = {
-        final_answer: okCandidates[0]?.text ?? "抱歉，本次汇总失败，请稍后重试。",
-        disagreements: [],
-        confidence: 0.3
+        final_answer: okCandidates[0]?.text ?? "抱歉，本次汇总失败，请稍后重试。"
       };
     } else {
       try {
         const synth = await synthesizeFinal({
-          userMessage: message,
-          contextTurns: trimmedContext,
           candidates: normalizedCandidates,
           timeoutMs: synthTimeoutMs
         });
@@ -136,9 +138,7 @@ export function createApp() {
         synthMs = nowMs() - synthStartedAt;
         const best = pickBestCandidate(normalizedCandidates);
         final = {
-          final_answer: best?.text ?? "抱歉，本次汇总失败，请稍后重试。",
-          disagreements: [],
-          confidence: 0.2
+          final_answer: best?.text ?? "抱歉，本次汇总失败，请稍后重试。"
         };
         safeLog("[/api/aggr/chat] synth_failed_fallback", {
           threadId,

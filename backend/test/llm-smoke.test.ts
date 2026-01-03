@@ -45,9 +45,9 @@ test(
     const threadId = randomUUID();
     const payload = {
       threadId,
-      //message: "今天上海的气温",
+      message: "今天上海的气温",
       //message: "特朗普介绍",
-      message: "2026水瓶座运势",
+      //message: "2026狮子座运势",
       //message: "你是谁",
       //message: "用一句话说出你是否可以访问互联网",
       //message: "今天的日期",
@@ -93,9 +93,6 @@ test(
         assert.ok(body.final && typeof body.final === "object");
         assert.equal(typeof body.final.final_answer, "string");
         assert.ok(body.final.final_answer.trim().length > 0);
-        assert.ok(Array.isArray(body.final.disagreements));
-        assert.equal(typeof body.final.confidence, "number");
-        assert.ok(body.final.confidence >= 0 && body.final.confidence <= 1);
 
         assert.ok(body.timing && typeof body.timing === "object");
         assert.equal(typeof body.timing.totalMs, "number");

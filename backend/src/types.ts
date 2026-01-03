@@ -13,12 +13,6 @@ export type Candidate = {
 
 export type FinalOutput = {
   final_answer: string;
-  disagreements: Array<{
-    topic: string;
-    positions: { claude: string; chatgpt: string; gemini: string };
-    resolution: string;
-  }>;
-  confidence: number;
 };
 
 export type ChatRequest = {

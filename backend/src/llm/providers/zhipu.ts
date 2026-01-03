@@ -21,17 +21,28 @@ export async function generateZhipu(
     temperature: 0,
     stream: false
   };
-  const bodyStr = JSON.stringify(body);                                                                                                                             
-  console.log(`[zhipu] request size: ${bodyStr.length} bytes, timeout: ${timeoutMs}ms`); 
-  const { data, latencyMs } = await postJson<ZhipuChatCompletionResponse>(
-    url,
-    body,
-    { authorization: `Bearer ${apiKey}` },
-    timeoutMs
-  );
+  const bodyStr = JSON.stringify(body, null, 2);
+  console.log(`[zhipu] request ${bodyStr}`);
+
+  let data: ZhipuChatCompletionResponse;
+  let latencyMs: number;
+  try {
+    const result = await postJson<ZhipuChatCompletionResponse>(
+      url,
+      body,
+      { authorization: `Bearer ${apiKey}` },
+      timeoutMs
+    );
+    data = result.data;
+    latencyMs = result.latencyMs;
+  } catch (err: any) {
+    const message = typeof err?.message === "string" ? err.message : "unknown error";
+    const status = typeof err?.status === "number" ? ` status=${err.status}` : "";
+    console.log(`[zhipu] request failed:${status} ${message}`);
+    throw err;
+  }
 
   const text = data.choices?.[0]?.message?.content ?? "";
   if (!text.trim()) throw new Error("Empty Zhipu response");
   return { text, latencyMs };
 }
-
