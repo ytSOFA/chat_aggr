@@ -21,7 +21,7 @@ export async function generateZhipu(
     messages,
     temperature: 0,
     stream: true,
-    //thinking: { type: "disabled" }
+    thinking: { type: "disabled" }
   };
   const bodyStr = JSON.stringify(body, null, 2);
   console.log(`[zhipu] request ${bodyStr}`);
