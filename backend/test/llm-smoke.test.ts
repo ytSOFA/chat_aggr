@@ -45,9 +45,9 @@ test(
     const threadId = randomUUID();
     const payload = {
       threadId,
-      message: "今天上海的气温",
+      //message: "今天上海的气温",
       //message: "特朗普介绍",
-      //message: "2026狮子座运势",
+      message: "2026双子座运势",
       //message: "你是谁",
       //message: "用一句话说出你是否可以访问互联网",
       //message: "今天的日期",
