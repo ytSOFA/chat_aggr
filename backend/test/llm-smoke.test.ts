@@ -47,16 +47,16 @@ test(
       threadId,
       //message: "你是谁", 
       //message: "今天天气如何？",
-      message: "特朗普介绍",
+      //message: "特朗普介绍",
       //message: "2026双子座运势",
       //message: "马杜罗被抓对国际局势有何影响",
-      //message: "how are you today?",
+      //message: "how are you",
       ////
       //message: "用一句话说出你是否可以访问互联网",
       //message: "今天的日期",
       //message: "搜索互联网：今天的日期",
       //message: "1+1=？",
-      //message: "搜索互联网：2025年F1世界冠军是谁", //都可以，gpt很慢
+      message: "搜索互联网：2025年F1世界冠军是谁", //都可以，gpt很慢
       //message:"你能调用工具搜索互联网吗",
       //message: "一句话描述春天", //都可以
       contextTurns: []
