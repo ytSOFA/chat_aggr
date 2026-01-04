@@ -45,11 +45,12 @@ test(
     const threadId = randomUUID();
     const payload = {
       threadId,
-      //message: "你是谁",
+      //message: "你是谁", 
       //message: "今天天气如何？",
-      //message: "特朗普介绍",
+      message: "特朗普介绍",
       //message: "2026双子座运势",
-
+      //message: "马杜罗被抓对国际局势有何影响",
+      //message: "how are you today?",
       ////
       //message: "用一句话说出你是否可以访问互联网",
       //message: "今天的日期",
