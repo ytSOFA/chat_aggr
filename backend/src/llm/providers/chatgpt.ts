@@ -40,7 +40,7 @@ export async function generateChatGPT(
     tool_choice: "auto",
     //max_tool_calls: 2,
     //reasoning: { effort: "low" },
-    text: { verbosity: "low" },
+    //text: { verbosity: "low" },
   };
 
   const { data, latencyMs } = await postJson<OpenAIResponsesApiResponse>(

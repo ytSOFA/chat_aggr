@@ -32,7 +32,7 @@ function buildMessages(req: ChatRequest) {
   const messages = [
     {
       role: "system" as const,
-      content: "回答要简洁明了；如果用户明确要求详细说明或步骤，再适当展开。"
+      content: "回答要简洁明了，不需要来源链接，如果用户明确要求详细说明或步骤，再适当展开。"
     },
     ...trimmed.flatMap((t) => [
       { role: "user" as const, content: t.user },
